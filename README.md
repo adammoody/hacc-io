@@ -1,3 +1,30 @@
+SCR + HACC I/O
+================================================================================
+
+This fork of HACC I/O adds SCR calls.
+This assumes one has installed SCR using the release tarball:
+https://scr.readthedocs.io/en/v3.0/users/build.html#cmake
+
+To build:
+
+
+    conf=""                           # single shared file
+    conf="-DHACC_IO_FILE_PER_PROCESS" # file per process
+
+    scrdir=/path/to/scr
+    export CXXFLAGS="-g -O0 -I${scrdir}/include $conf"
+    export LDFLAGS="-L${scrdir}/lib64 -lscr -Wl,-rpath,${scrdir}/lib64"
+
+    make clean
+    make hacc_io
+
+To run:
+
+    export SCR_DEBUG=1
+    export SCR_CACHE_BYPASS=1
+
+    srun -n2 hacc_io 100 testfile
+
 HACC I/O
 ================================================================================
 

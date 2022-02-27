@@ -1,5 +1,6 @@
 #include "restartio_glean.h"
 #include "glean_util_printmessage.h"
+#include "scr.h"
 
 #ifdef __bgq__
 // Needed for the various Personality functions
@@ -125,6 +126,14 @@ int RestartIO_GLEAN :: CreateCheckpoint (char* pathname, int64_t& num_particles)
     snprintf (m_partFileName, m_partFileNameLen, "%s-Part%08d-of-%08d.data",
               m_basePathName, m_partitionID, m_totPartitions);
     
+    char scr_name[SCR_MAX_FILENAME];
+    snprintf(scr_name, sizeof(scr_name), "%s", m_basePathName);
+    SCR_Start_output(scr_name, SCR_FLAG_CHECKPOINT);
+
+    char scr_file[SCR_MAX_FILENAME];
+    SCR_Route_file(m_partFileName, scr_file);
+    snprintf(m_partFileName, m_partFileNameLen, "%s", scr_file);
+
     //    ----------------------------------------
     //   Total number of particles in Partition
     //    ----------------------------------------
@@ -342,6 +351,17 @@ int64_t RestartIO_GLEAN :: OpenRestart (char* pathname)
     snprintf (m_partFileName, m_partFileNameLen, "%s-Part%08d-of-%08d.data",
               m_basePathName, m_partitionID, m_totPartitions);
    
+    int have_restart;
+    char scr_name[SCR_MAX_FILENAME];
+    SCR_Have_restart(&have_restart, scr_name);
+    assert(have_restart);
+
+    SCR_Start_restart(scr_name);
+
+    char scr_file[SCR_MAX_FILENAME];
+    SCR_Route_file(m_partFileName, scr_file);
+    snprintf(m_partFileName, m_partFileNameLen, "%s", scr_file);
+
     // Populate the Header
     switch (m_interface)
     {
@@ -693,6 +713,9 @@ int RestartIO_GLEAN :: Close (void)
                 status = this->__MPIIO_Close_Checkpoint();
                 break;
         }
+
+        int valid = (status != -1);
+        SCR_Complete_output(valid);
     }
     else if (m_mode == READ_RESTART)
     {
@@ -707,6 +730,8 @@ int RestartIO_GLEAN :: Close (void)
                 break;
         }
 
+        int valid = (status != -1);
+        SCR_Complete_restart(valid);
     }
     else
     {

@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "restartio_glean.h"
+#include "scr.h"
 
 using namespace std;
 
@@ -38,6 +39,8 @@ int main (int argc, char * argv[])
     fname = (char*)malloc(strlen(argv[2]) +1);
     strncpy (fname, argv[2], strlen(argv[2]));
     fname[strlen(argv[2])] = '\0';
+
+    SCR_Init();
     
 #ifndef HACC_IO_DISABLE_WRITE
     // Let's Populate Some Dummy Data
@@ -74,7 +77,8 @@ int main (int argc, char * argv[])
     rst->Initialize(MPI_COMM_WORLD);
 
     //rst->SetPOSIX_IO_Interface(1);
-    rst->SetPOSIX_IO_Interface();
+    //rst->SetPOSIX_IO_Interface();
+    rst->SetMPI_IO_Interface();
 
 #ifndef HACC_IO_DISABLE_WRITE
     rst->CreateCheckpoint (fname, num_particles);
@@ -162,6 +166,7 @@ int main (int argc, char * argv[])
     delete []pid_r;
     delete []mask_r;
 #endif
+    SCR_Finalize();
     MPI_Finalize();
 
     return 0;
